@@ -33,6 +33,9 @@ module RubyTls
         typedef :int, :pass_length
         typedef :int, :read_write_flag
 
+				# Version
+				attach_variable :SSL_version_str, :string
+				def self.version ; SSL.SSL_version_str ; end
 
         # Multi-threaded support
         callback :locking_cb, [:int, :int, :string, :int], :void
@@ -338,16 +341,26 @@ keystr
                 end
             end
 
+						DEFAULT_VERSION = :SSLv23
+
             def initialize(server, options = {})
                 @is_server = server
 
+								version = options.fetch(:version, DEFAULT_VERSION)
+
                 if @is_server
-                    @ssl_ctx = SSL.SSL_CTX_new(SSL.SSLv23_server_method)
+										unless SSL.respond_to?("#{version}_server_method")
+											raise "#{version} is unsupported (#{SSL.version})"
+										end	
+                    @ssl_ctx = SSL.SSL_CTX_new(SSL.__send__("#{version}_server_method"))
                     set_private_key(options[:private_key] || SSL::DEFAULT_PRIVATE)
                     set_certificate(options[:cert_chain]  || SSL::DEFAULT_CERT)
                     set_client_ca(options[:client_ca])
                 else
-                    @ssl_ctx = SSL.SSL_CTX_new(SSL.SSLv23_client_method)
+										unless SSL.respond_to?("#{version}_client_method")
+											raise "#{version} is unsupported (#{SSL.version})"
+										end	
+                    @ssl_ctx = SSL.SSL_CTX_new(SSL.__send__("#{version}_client_method"))
                 end
 
                 SSL.SSL_CTX_set_options(@ssl_ctx, SSL::SSL_OP_ALL)
