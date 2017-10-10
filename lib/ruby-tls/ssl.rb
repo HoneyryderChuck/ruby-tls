@@ -128,6 +128,8 @@ module RubyTls
         # Constructor
         attach_function :SSLv23_server_method, [], :pointer
         attach_function :SSLv23_client_method, [], :pointer
+        attach_function :TLSv1_server_method, [], :pointer
+        attach_function :TLSv1_client_method, [], :pointer
         attach_function :SSL_CTX_new, [:pointer], :ssl_ctx
 
         attach_function :SSL_CTX_ctrl, [:ssl_ctx, :int, :ulong, :pointer], :long
@@ -179,9 +181,15 @@ module RubyTls
         attach_function :SSL_CTX_set_session_id_context, [:ssl_ctx, :string, :buffer_length], :int
         attach_function :SSL_load_client_CA_file, [:string], :pointer
         attach_function :SSL_CTX_set_client_CA_list, [:ssl_ctx, :pointer], :void
+        attach_function :SSL_CTX_load_verify_locations, [:ssl_ctx, :pointer], :int, :blocking => true
 
         # OpenSSL before 1.0.2 do not have these methods
         begin
+        		attach_function :TLSv1_1_server_method, [], :pointer
+        		attach_function :TLSv1_1_client_method, [], :pointer
+        		attach_function :TLSv1_2_server_method, [], :pointer
+        		attach_function :TLSv1_2_client_method, [], :pointer
+
             attach_function :SSL_CTX_set_alpn_protos, [:ssl_ctx, :string, :uint], :int
 
             OPENSSL_NPN_UNSUPPORTED = 0
